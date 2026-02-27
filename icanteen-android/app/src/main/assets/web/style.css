@@ -1291,6 +1291,8 @@ img {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-width: 800px;
+    width: 100%;
 }
 
 .meal-card {
@@ -1734,8 +1736,9 @@ img {
 
 .burza-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    width: 100%;
 }
 
 .burza-card {
@@ -1879,7 +1882,7 @@ img {
 
 .credit-card {
     width: 100%;
-    max-width: 440px;
+    max-width: 600px;
     padding: 32px;
     background: linear-gradient(135deg,
             rgba(var(--accent-rgb), .12) 0%,
@@ -2281,7 +2284,7 @@ img {
 
 .modal {
     width: 100%;
-    max-width: 420px;
+    max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
     animation: modalIn .35s var(--ease-spring) both;
