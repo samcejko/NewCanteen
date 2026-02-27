@@ -1,0 +1,99 @@
+# .github/workflows/publish.yml
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*" # tag pattern on pub.dev: 'v'
+
+# Publish using custom workflow
+jobs:
+  publish:
+    permissions:
+      id-token: write # Required for authentication using OIDC
+      contents: write # Required for writing to the release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Extract release notes
+        id: extract-release-notes
+        run: |
+          # Use awk to extract lines until the second header
+          FILE_CONTENTS=$(awk '/^## /{if(++n==2)exit} {print}' CHANGELOG.md)
+
+          # Escape newlines and set the output
+          FILE_CONTENTS="${FILE_CONTENTS//'%'/'%25'}"
+          FILE_CONTENTS="${FILE_CONTENTS//$'\n'/'%0A'}"
+          FILE_CONTENTS="${FILE_CONTENTS//$'\r'/'%0D'}"
+
+          echo "::set-output name=contents::${FILE_CONTENTS}"
+
+      - name: Update Release Description
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ""
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: ${{ steps.extract-release-notes.outputs.contents }}
+
+      # Note: This workflow uses the latest stable version of the Dart SDK.
+      # You can specify other versions if desired, see documentation here:
+      # https://github.com/dart-lang/setup-dart/blob/main/README.md
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Install dependencies
+        run: dart pub get
+
+      # Consider passing '--fatal-infos' for slightly stricter analysis.
+      - name: Analyze project source
+        run: dart analyze --fatal-infos
+
+      # Testing pro jidelna.trebesin.cz
+      #- name: Credentials pro jidelna.trebesin.cz
+      #  run: |
+      #    echo "URL= 'jidelna.trebesin.cz'" > .env
+      #    echo "USER= '${{ secrets.USER1 }}'" >> .env
+      #    echo "PASS= '${{ secrets.PASS1 }}'" >> .env
+      #
+      #- name: test pro jidelna.trebesin.cz
+      #  run: dart test
+
+      # Testing pro obedy.zs-mat5.cz
+      - name: Credentials pro obedy.zs-mat5.cz
+        run: |
+          echo "URL= 'obedy.zs-mat5.cz'" > .env
+          echo "USER= '${{ secrets.USER2 }}'" >> .env
+          echo "PASS= '${{ secrets.PASS2 }}'" >> .env
+
+      - name: Test pro obedy.zs-mat5.cz
+        run: dart test
+
+      # Testing pro obedy.ss-stavebnikolin.cz
+      # REASON: updated to a newer version (iCanteen 2.20.13)
+      # - name: Credentials pro obedy.ss-stavebnikolin.cz
+      #   run: |
+      #     echo "URL= 'obedy.ss-stavebnikolin.cz'" > .env
+      #     echo "USER= '${{ secrets.USER3 }}'" >> .env
+      #     echo "PASS= '${{ secrets.PASS3 }}'" >> .env
+
+      # - name: Test pro obedy.ss-stavebnikolin.cz
+      #   run: dart test
+
+      # Testing pro jidelna.cza-hu.cz
+      # REASON: Presumed to be wrong credentials on our side
+      #- name: Credentials pro jidelna.cza-hu.cz
+      #  run: |
+      #    echo "URL= 'jidelna.cza-hu.cz'" > .env
+      #    echo "USER= '${{ secrets.USER4 }}'" >> .env
+      #    echo "PASS= '${{ secrets.PASS4 }}'" >> .env
+
+      #- name: Test pro jidelna.cza-hu.cz
+      #  run: dart test
+
+      - name: Removing credentials
+        run: rm -rf .env
+
+      - name: Formatting for pub
+        run: dart format .
+
+      - name: Publish
+        run: dart pub publish --force

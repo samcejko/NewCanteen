@@ -1,0 +1,7 @@
+{
+    "dart.flutterSdkPath": ".flutter",
+    "conventionalCommits.scopes": [
+        "dependencies",
+        "nastaveni"
+    ],
+}

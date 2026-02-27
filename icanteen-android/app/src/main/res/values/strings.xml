@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NewCanteen</string>
+
+    <string name="shortcut_short_burza">Burza</string>
+    <string name="shortcut_long_burza">Otevřít Burzu</string>
+
+    <string name="shortcut_short_settings">Nastavení</string>
+    <string name="shortcut_long_settings">Otevřít Nastavení Profilu</string>
+</resources>

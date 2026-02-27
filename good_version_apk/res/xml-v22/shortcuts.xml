@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:icon="@android:drawable/ic_menu_sort_by_size" android:enabled="true" android:shortcutId="burza" android:shortcutShortLabel="@string/shortcut_short_burza" android:shortcutLongLabel="@string/shortcut_long_burza">
+        <intent android:targetPackage="icanteen.samcejko.eu" android:action="icanteen.samcejko.eu.ACTION_OPEN_BURZA" android:targetClass="icanteen.samcejko.eu.MainActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+    <shortcut android:icon="@android:drawable/ic_menu_preferences" android:enabled="true" android:shortcutId="settings" android:shortcutShortLabel="@string/shortcut_short_settings" android:shortcutLongLabel="@string/shortcut_long_settings">
+        <intent android:targetPackage="icanteen.samcejko.eu" android:action="icanteen.samcejko.eu.ACTION_OPEN_SETTINGS" android:targetClass="icanteen.samcejko.eu.MainActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+</shortcuts>
