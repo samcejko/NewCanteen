@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>iCanteen — Školní jídelna</title>
+    <meta name="description"
+        content="iCanteen — moderní systém pro objednávání jídel ve školní jídelně. Objednávejte a odhlašujte stravu rychle a jednoduše.">
+    <meta name="theme-color" content="#050505">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        window.addEventListener('error', function (e) {
+            const err = document.createElement('div');
+            err.style.cssText = 'position:fixed;top:10%;left:5%;right:5%;background:red;color:white;z-index:999999;padding:20px;font-size:16px;border-radius:10px;word-wrap:break-word;';
+            err.textContent = "CRITICAL JS ERROR: " + (e.message || e.error);
+            document.body.appendChild(err);
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+            const err = document.createElement('div');
+            err.style.cssText = 'position:fixed;top:25%;left:5%;right:5%;background:purple;color:white;z-index:999999;padding:20px;font-size:16px;border-radius:10px;word-wrap:break-word;';
+            err.textContent = "UNHANDLED PROMISE: " + (e.reason ? (e.reason.message || e.reason) : e);
+            document.body.appendChild(err);
+        });
+    </script>
+</head>
+
+<body>
+    <!-- Noise texture overlay -->
+    <div class="noise-overlay" aria-hidden="true"></div>
+
+    <!-- Global loading bar -->
+    <div class="loading-bar" id="loading-bar" aria-hidden="true"></div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="login-bg">
+            <div class="login-orb orb-1"></div>
+            <div class="login-orb orb-2"></div>
+            <div class="login-orb orb-3"></div>
+        </div>
+        <canvas id="login-particles" aria-hidden="true"></canvas>
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-logo">
+                    <div class="logo-icon">
+                        <span class="material-symbols-rounded">restaurant</span>
+                    </div>
+                    <h1>iCanteen</h1>
+                    <p class="login-subtitle" data-i18n="login.subtitle">Školní jídelna</p>
+                </div>
+                <form id="login-form" autocomplete="on">
+                    <div class="input-group">
+                        <span class="material-symbols-rounded input-icon">person</span>
+                        <input type="text" id="username" placeholder="Uživatelské jméno"
+                            data-i18n-placeholder="login.username" value="jan.novak" autocomplete="username" required>
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-group">
+                        <span class="material-symbols-rounded input-icon">lock</span>
+                        <input type="password" id="password" placeholder="Heslo" data-i18n-placeholder="login.password"
+                            value="••••••" autocomplete="current-password" required>
+                        <div class="input-line"></div>
+                    </div>
+                    <div class="input-group input-url">
+                        <span class="material-symbols-rounded input-icon">dns</span>
+                        <input type="text" id="server-url" placeholder="URL serveru jídelny"
+                            data-i18n-placeholder="login.server" value="stravovani.sstebrno.cz">
+                        <div class="input-line"></div>
+                    </div>
+                    <button type="submit" class="btn-primary btn-login ripple-host" id="btn-login">
+                        <span data-i18n="login.login">Přihlásit se</span>
+                        <span class="material-symbols-rounded">arrow_forward</span>
+                    </button>
+                </form>
+                <p class="login-footer">Powered by iCanteen &copy; 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-screen" class="screen">
+        <!-- Sidebar overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-small">
+                    <span class="material-symbols-rounded">restaurant</span>
+                </div>
+                <span class="sidebar-title">iCanteen</span>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item active" data-page="jidelnicek">
+                    <span class="material-symbols-rounded">menu_book</span>
+                    <span class="nav-label" data-i18n="nav.jidelnicek">Jídelníček</span>
+                    <div class="nav-indicator"></div>
+                </li>
+                <li class="nav-item" data-page="burza">
+                    <span class="material-symbols-rounded">swap_horiz</span>
+                    <span class="nav-label" data-i18n="nav.burza">Burza</span>
+                    <div class="nav-indicator"></div>
+                </li>
+                <li class="nav-item" data-page="konto">
+                    <span class="material-symbols-rounded">account_circle</span>
+                    <span class="nav-label" data-i18n="nav.credit">Konto</span>
+                    <div class="nav-indicator"></div>
+                </li>
+                <li class="nav-item" data-page="nastaveni">
+                    <span class="material-symbols-rounded">settings</span>
+                    <span class="nav-label" data-i18n="nav.settings">Nastavení</span>
+                    <div class="nav-indicator"></div>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="sidebar-avatar">--</div>
+                    <div class="user-details">
+                        <span class="user-name" id="sidebar-name">Načítání...</span>
+                        <span class="user-class" id="sidebar-class"></span>
+                    </div>
+                </div>
+                <button class="btn-icon" id="btn-logout" title="Odhlásit se">
+                    <span class="material-symbols-rounded">logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="topbar-info">
+                    <h2 id="page-title">Jídelníček</h2>
+                    <span class="topbar-date" id="current-date"></span>
+                </div>
+                <div class="topbar-actions">
+                    <div class="credit-badge" id="credit-badge">
+                        <span class="material-symbols-rounded">account_balance_wallet</span>
+                        <span class="credit-amount" id="credit-amount">1 250 Kč</span>
+                    </div>
+                    <button class="btn-icon notification-btn" id="notification-btn">
+                        <span class="material-symbols-rounded">notifications</span>
+                        <span class="notification-dot"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page: Jídelníček -->
+            <div id="page-jidelnicek" class="page active">
+                <div class="week-nav">
+                    <button class="btn-icon" id="prev-week">
+                        <span class="material-symbols-rounded">chevron_left</span>
+                    </button>
+                    <div class="week-days" id="week-days">
+                        <!-- Generated by JS -->
+                    </div>
+                    <button class="btn-icon" id="next-week">
+                        <span class="material-symbols-rounded">chevron_right</span>
+                    </button>
+                </div>
+
+                <div class="meals-container" id="meals-container">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+
+            <!-- Page: Burza -->
+            <div id="page-burza" class="page">
+                <div class="burza-container">
+                    <div class="burza-header" style="margin-bottom: 20px;">
+                        <h3 class="burza-title" style="color: var(--text-primary);"><span
+                                class="material-symbols-rounded"
+                                style="vertical-align: middle; margin-right: 8px;">swap_horiz</span> <span
+                                data-i18n="burza.title">Dostupná jídla z burzy</span></h3>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-top: 5px;"
+                            data-i18n="burza.subtitle">Zde se zobrazují jídla, která odhlásili ostatní strávníci a
+                            můžete si je převzít.</p>
+                    </div>
+                    <div id="burza-list" class="burza-list">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Moje Konto -->
+            <div id="page-konto" class="page">
+                <div class="konto-grid">
+                    <div class="credit-overview">
+                        <div class="credit-card glass-card">
+                            <div class="credit-card-bg"></div>
+                            <div class="credit-card-content">
+                                <span class="credit-label" data-i18n="credit.balance">Aktuální zůstatek</span>
+                                <span class="credit-value" id="credit-value" data-i18n="loading">Načítání...</span>
+                                <div class="credit-card-footer">
+                                    <div>
+                                        <span class="credit-sub-label" data-i18n="credit.diner">Strávník</span>
+                                        <span class="credit-sub-value" id="credit-stravnik"
+                                            data-i18n="loading">Načítání...</span>
+                                    </div>
+                                    <div>
+                                        <span class="credit-sub-label" data-i18n="credit.vs">Variabilní symbol</span>
+                                        <span class="credit-sub-value" id="credit-vs">----</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="konto-section glass-card">
+                        <h3 class="konto-title"><span class="material-symbols-rounded"
+                                style="vertical-align: middle; margin-right:6px">shopping_cart</span> <span
+                                data-i18n="credit.current_orders">Aktuální objednávky</span></h3>
+                        <div class="orders-list" id="current-orders-list"></div>
+                    </div>
+
+                    <div class="konto-section glass-card">
+                        <h3 class="konto-title"><span class="material-symbols-rounded"
+                                style="vertical-align: middle; margin-right:6px">history</span> <span
+                                data-i18n="credit.history">Historie a Platby</span></h3>
+                        <div class="orders-list" id="history-orders-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Nastavení -->
+            <div id="page-nastaveni" class="page">
+                <div class="settings-grid">
+                    <div class="settings-section glass-card">
+                        <h3 class="settings-title">
+                            <span class="material-symbols-rounded">person</span>
+                            <span data-i18n="settings.profile">Profil</span>
+                        </h3>
+                        <div class="settings-row">
+                            <span class="settings-label" data-i18n="settings.name">Jméno</span>
+                            <span class="settings-value" id="setting-name" data-i18n="loading">Načítání...</span>
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label" data-i18n="settings.class">Třída</span>
+                            <span class="settings-value" id="setting-class"></span>
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label" data-i18n="settings.email">E-mail</span>
+                            <span class="settings-value" id="setting-email"></span>
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label" data-i18n="settings.category">Kategorie</span>
+                            <span class="settings-value" id="setting-category"></span>
+                        </div>
+                    </div>
+
+                    <div class="settings-section glass-card">
+                        <h3 class="settings-title">
+                            <span class="material-symbols-rounded">palette</span>
+                            <span data-i18n="settings.appearance">Vzhled a Jazyk</span>
+                        </h3>
+                        <div class="settings-row">
+                            <span class="settings-label" data-i18n="settings.accent">Barva motivu</span>
+                            <div class="color-picker" id="color-picker">
+                                <button class="color-btn active" data-color="#39FF14" style="background:#39FF14;"
+                                    title="Neon Zelená"></button>
+                                <button class="color-btn" data-color="#00D2FF" style="background:#00D2FF;"
+                                    title="Cyan"></button>
+                                <button class="color-btn" data-color="#FF0055" style="background:#FF0055;"
+                                    title="Růžová"></button>
+                                <button class="color-btn" data-color="#FF9900" style="background:#FF9900;"
+                                    title="Zlatá"></button>
+                                <button class="color-btn" data-color="#B700FF" style="background:#B700FF;"
+                                    title="Fialová"></button>
+                            </div>
+                        </div>
+                        <div class="settings-row toggle-row">
+                            <span class="settings-label" data-i18n="settings.dark_mode">Světlý režim</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="light-mode-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-row toggle-row">
+                            <span class="settings-label" data-i18n="settings.language">Jazyk</span>
+                            <select class="settings-select" id="lang-select">
+                                <option value="cs">Čeština</option>
+                                <option value="en">English</option>
+                                <option value="uk">Українська</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation (Mobile) -->
+        <nav class="bottom-nav" id="bottom-nav">
+            <ul class="bottom-nav-list">
+                <li class="bottom-nav-item active" data-page="jidelnicek">
+                    <span class="material-symbols-rounded">menu_book</span>
+                    <span>Jídelníček</span>
+                </li>
+                <li class="bottom-nav-item" data-page="burza">
+                    <span class="material-symbols-rounded">swap_horiz</span>
+                    <span>Burza</span>
+                </li>
+                <li class="bottom-nav-item" data-page="konto">
+                    <span class="material-symbols-rounded">account_circle</span>
+                    <span>Konto</span>
+                </li>
+                <li class="bottom-nav-item" data-page="nastaveni">
+                    <span class="material-symbols-rounded">settings</span>
+                    <span>Nastavení</span>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container"
+        style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:9999; display:flex; flex-direction:column; gap:10px;">
+    </div>
+
+    <!-- Notification Toast (Legacy) -->
+    <div id="toast" class="toast">
+        <span class="material-symbols-rounded toast-icon">check_circle</span>
+        <span class="toast-message" id="toast-message">Jídlo objednáno</span>
+    </div>
+
+
+
+    <script src="app.js"></script>
+</body>
+
+</html>
